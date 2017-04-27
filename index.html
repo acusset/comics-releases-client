@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>New Comics Release</title>
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="https://unpkg.com/isotope-layout@3/dist/isotope.pkgd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.1/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.1/js/materialize.min.js"></script>
+    <script src="packery-mode.pkgd.min.js"></script>
+</head>
+<body class="black">
+
+
+<nav class="red darken-4">
+    <div class="nav-wrapper">
+        <ul class="button-group left hide-on-med-and-down">
+            <li><a data-filter="*" class="">All</a></li>
+        </ul>
+    </div>
+</nav>
+
+
+<div class="row grid">
+
+</div>
+<script>
+    String.prototype.toSlug = function () {
+        let st = this.toLowerCase();
+        st = st.replace(/[\u00C0-\u00C5]/ig, 'a');
+        st = st.replace(/[\u00C8-\u00CB]/ig, 'e');
+        st = st.replace(/[\u00CC-\u00CF]/ig, 'i');
+        st = st.replace(/[\u00D2-\u00D6]/ig, 'o');
+        st = st.replace(/[\u00D9-\u00DC]/ig, 'u');
+        st = st.replace(/[\u00D1]/ig, 'n');
+        st = st.replace(/[^a-z0-9 ]+/gi, '');
+        st = st.trim().replace(/ /g, '-');
+        st = st.replace(/[\-]{2}/g, '');
+        return (st.replace(/[^a-z\- ]*/gi, ''));
+    };
+
+    function getComics() {
+        return new Promise((resolve, reject) => {
+//            $.get('http://localhost:3000/')
+            $.get('https://new-comics-releases.herokuapp.com/')
+                .done((data) => {
+                    resolve(data);
+                })
+                .fail((err) => {
+                    reject(err);
+                });
+        });
+    }
+
+    function createCard(comic) {
+        let element = document.createElement('div');
+        element.setAttribute('class', `col s6 m4 l2 grid-item grid-sizer ${comic.type.toSlug()}`);
+        element.setAttribute('data-category', comic.type.toSlug());
+
+        let card = document.createElement('div');
+        card.setAttribute('class', 'card-panel red darken-4');
+
+        let cardImg = document.createElement('div');
+        cardImg.setAttribute('class', 'card-image');
+
+        let cardContent = document.createElement('div');
+        cardContent.setAttribute('class', 'card-content white-text');
+
+//        let img = document.createElement('img');
+//        img.setAttribute('src', 'img/portrait_uncanny.jpg');
+//        img.setAttribute('class', 'responsive-img');
+//        img.setAttribute('onload', 'imageLoad()');
+
+        let cardTitle = document.createElement('span');
+        cardTitle.setAttribute('class', 'card-title flow-text');
+        cardTitle.innerHTML = comic.name;
+
+        let cardAction = document.createElement('div');
+        cardAction.setAttribute('class', 'card-action');
+        let price = document.createElement('span');
+        price.setAttribute('class', 'flow-text white-text');
+        price.innerHTML = `$${comic.price}`;
+        cardAction.appendChild(price);
+
+        card.appendChild(cardImg);
+        cardContent.appendChild(cardTitle);
+        card.appendChild(cardContent);
+        card.appendChild(cardAction);
+        element.appendChild(card);
+
+        return (element);
+    }
+
+
+    function createButtons(set) {
+        let buttonGroup = document.getElementsByClassName('button-group')[0];
+        for (let entry of set) {
+            let li = document.createElement('li');
+            let button = document.createElement('a');
+            button.setAttribute('data-filter', `.${entry.toSlug()}`);
+            button.setAttribute('class', '');
+            button.innerHTML = entry;
+            li.appendChild(button);
+            buttonGroup.appendChild(li);
+        }
+    }
+
+    function bindClicks() {
+        let buttonGroup = document.getElementsByClassName('button-group')[0];
+
+        buttonGroup.addEventListener('click', (event) => {
+            let data = event.target.getAttribute('data-filter');
+            buttonGroup.childNodes.forEach((elmt) => {
+                if(elmt.tagName == 'LI' && elmt.hasAttribute('class')) {
+                    elmt.removeAttribute('class')
+                }
+            });
+            event.target.parentElement.setAttribute('class', 'active');
+            iso.arrange({filter: data});
+        });
+    }
+
+    $(() => {
+        let grid = document.getElementsByClassName('grid')[0];
+        let elem, iso;
+        getComics()
+            .then(createCards)
+            .then(createButtons)
+            .then(initGrid)
+            .then(bindClicks);
+    });
+
+    function createCards(data) {
+        return new Promise((resolve, reject) => {
+            let grid = document.getElementsByClassName('grid')[0];
+            let set = new Set();
+            data.forEach((comic) => {
+                let elt = createCard(comic);
+                set.add(comic.type);
+                grid.appendChild(elt);
+            });
+            resolve(set);
+        });
+    }
+
+    function initGrid() {
+        elem = document.querySelector('.grid');
+        iso = new Isotope(elem, {
+            itemSelector: '.grid-item',
+            stagger: 30
+        });
+    }
+</script>
+</body>
+</html>

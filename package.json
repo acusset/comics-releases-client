@@ -1,0 +1,14 @@
+{
+  "name": "previewsworld-client",
+  "version": "1.0.0",
+  "description": "A client for comics release API",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Antoine Cusset",
+  "license": "ISC",
+  "dependencies": {
+    "isotope-layout": "^3.0.3"
+  }
+}
